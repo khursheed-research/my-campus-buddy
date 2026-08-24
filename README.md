@@ -1,5 +1,8 @@
 # My Campus Buddy
 
+> **New here?** Read [`HANDOFF.md`](./HANDOFF.md) first — it covers what this is, where
+> everything lives (GitHub / Vercel / Supabase), and exactly what access you need.
+
 The institutional intelligence layer for any organization — companies, government agencies, schools,
 religious institutions, and family offices. It watches approved conversations and decisions, remembers
 them permanently, and advises the next person who faces a similar situation using the institution's own

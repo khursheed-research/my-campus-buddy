@@ -1,24 +1,24 @@
 /* ============ TOKENS ============ */
 :root{
-  --bg:#F5F6FA;
-  --bg-elev:rgba(255,255,255,0.65);
-  --bg-elev-solid:#FFFFFF;
-  --bg-elev-2:#ECEFF7;
-  --bg-elev-3:#DFE3F0;
-  --ink:#151A2E;
-  --ink-dim:#4C5273;
-  --ink-faint:#8A8FAC;
-  --hairline:rgba(21,26,46,0.08);
-  --hairline-strong:rgba(21,26,46,0.15);
-  --gold:#C07C1F;
-  --gold-soft:rgba(192,124,31,0.12);
+  --bg:#14172A;
+  --bg-elev:rgba(255,255,255,0.045);
+  --bg-elev-solid:#1C2036;
+  --bg-elev-2:#242942;
+  --bg-elev-3:#2E3350;
+  --ink:#F1EFE7;
+  --ink-dim:#B3B8D1;
+  --ink-faint:#757BA0;
+  --hairline:rgba(241,239,231,0.08);
+  --hairline-strong:rgba(241,239,231,0.15);
+  --gold:#E8A33D;
+  --gold-soft:rgba(232,163,61,0.14);
   --gold-ink:#2B1B04;
-  --violet:#4C5FDA;
-  --violet-soft:rgba(76,95,218,0.11);
-  --green:#218A57;
-  --green-soft:rgba(33,138,87,0.11);
-  --rose:#C43F5C;
-  --rose-soft:rgba(196,63,92,0.11);
+  --violet:#8CA0FF;
+  --violet-soft:rgba(140,160,255,0.14);
+  --green:#74D69C;
+  --green-soft:rgba(116,214,156,0.13);
+  --rose:#EF8AA0;
+  --rose-soft:rgba(239,138,160,0.13);
   --radius-lg:20px;
   --radius-md:14px;
   --radius-sm:9px;
@@ -66,7 +66,7 @@ h1,h2,h3,h4{ font-family:var(--serif); font-weight:600; letter-spacing:-0.01em; 
   display:flex; align-items:center; justify-content:space-between;
   padding:18px 32px;
   backdrop-filter:blur(14px);
-  background:rgba(245,246,250,0.78);
+  background:rgba(20,23,42,0.72);
   border-bottom:1px solid var(--hairline);
 }
 .brand{ display:flex; align-items:center; gap:10px; font-family:var(--serif); font-size:19px; font-weight:600; }

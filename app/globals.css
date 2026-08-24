@@ -1,24 +1,24 @@
 /* ============ TOKENS ============ */
 :root{
-  --bg:#0A0D18;
-  --bg-elev:#11162559;
-  --bg-elev-solid:#121729;
-  --bg-elev-2:#1A2138;
-  --bg-elev-3:#232B47;
-  --ink:#EDEAE1;
-  --ink-dim:#A7ACC7;
-  --ink-faint:#666C8C;
-  --hairline:rgba(237,234,225,0.09);
-  --hairline-strong:rgba(237,234,225,0.16);
-  --gold:#E8A33D;
-  --gold-soft:rgba(232,163,61,0.14);
+  --bg:#F5F6FA;
+  --bg-elev:rgba(255,255,255,0.65);
+  --bg-elev-solid:#FFFFFF;
+  --bg-elev-2:#ECEFF7;
+  --bg-elev-3:#DFE3F0;
+  --ink:#151A2E;
+  --ink-dim:#4C5273;
+  --ink-faint:#8A8FAC;
+  --hairline:rgba(21,26,46,0.08);
+  --hairline-strong:rgba(21,26,46,0.15);
+  --gold:#C07C1F;
+  --gold-soft:rgba(192,124,31,0.12);
   --gold-ink:#2B1B04;
-  --violet:#7C93FF;
-  --violet-soft:rgba(124,147,255,0.14);
-  --green:#6FCF97;
-  --green-soft:rgba(111,207,151,0.13);
-  --rose:#E8798F;
-  --rose-soft:rgba(232,121,143,0.13);
+  --violet:#4C5FDA;
+  --violet-soft:rgba(76,95,218,0.11);
+  --green:#218A57;
+  --green-soft:rgba(33,138,87,0.11);
+  --rose:#C43F5C;
+  --rose-soft:rgba(196,63,92,0.11);
   --radius-lg:20px;
   --radius-md:14px;
   --radius-sm:9px;
@@ -66,7 +66,7 @@ h1,h2,h3,h4{ font-family:var(--serif); font-weight:600; letter-spacing:-0.01em; 
   display:flex; align-items:center; justify-content:space-between;
   padding:18px 32px;
   backdrop-filter:blur(14px);
-  background:rgba(10,13,24,0.72);
+  background:rgba(245,246,250,0.78);
   border-bottom:1px solid var(--hairline);
 }
 .brand{ display:flex; align-items:center; gap:10px; font-family:var(--serif); font-size:19px; font-weight:600; }

@@ -37,6 +37,7 @@ const TABS = [
   { id: "timeline", label: "🕘 Timeline" },
   { id: "graph", label: "🕸 Knowledge Graph" },
   { id: "memory", label: "📋 Decision Memory" },
+  { id: "insights", label: "📊 Insights & Analytics" },
   { id: "advisor", label: "🎯 Strategy Advisor" },
   { id: "voice", label: "🎙 Voice Capture" },
   { id: "learning", label: "📈 AI Learning" },
@@ -123,6 +124,7 @@ export default function Demo() {
               )}
               {tab === "graph" && <GraphPanel />}
               {tab === "memory" && <MemoryPanel events={events} loading={loadingEvents} />}
+              {tab === "insights" && <InsightsPanel />}
               {tab === "advisor" && <AdvisorPanel />}
               {tab === "voice" && <VoicePanel showToast={showToast} />}
               {tab === "learning" && <LearningPanel showToast={showToast} events={events} />}
@@ -643,6 +645,241 @@ function LearningPanel({ showToast, events }: { showToast: (t: string) => void; 
         <div className="stat-box"><div className="num">{experts}</div><div className="lbl">Experts identified</div></div>
       </div>
       <button className="btn-primary" onClick={simulate}>Simulate a New Meeting</button>
+    </div>
+  );
+}
+
+function InsightsPanel() {
+  const [region, setRegion] = useState<"all" | "na" | "emea" | "apac">("all");
+
+  const quarters = ["Q1 '25", "Q2 '25", "Q3 '25", "Q4 '25"];
+  const revenueByQuarter = [
+    { na: 2.1, emea: 1.2, apac: 0.6 },
+    { na: 2.3, emea: 1.3, apac: 0.7 },
+    { na: 2.4, emea: 1.5, apac: 0.9 },
+    { na: 2.8, emea: 1.6, apac: 1.1 },
+  ];
+  const totalByQuarter = revenueByQuarter.map((q) => q.na + q.emea + q.apac);
+  const maxRevenue = Math.max(...totalByQuarter);
+  const yoyGrowth = Math.round(((totalByQuarter[3] - totalByQuarter[0]) / totalByQuarter[0]) * 100);
+
+  const salesLeaderboard = [
+    { name: "Priya Nair", deals: 34, winRate: 61, quota: 118 },
+    { name: "Devon Marsh", deals: 29, winRate: 54, quota: 104 },
+    { name: "Aisha Rahman", deals: 26, winRate: 49, quota: 96 },
+    { name: "Tom Okafor", deals: 21, winRate: 42, quota: 81 },
+    { name: "Lena Vogt", deals: 18, winRate: 38, quota: 74 },
+  ];
+
+  const headcountTrend = [
+    { q: "Q1 '25", hires: 12, departures: 7 },
+    { q: "Q2 '25", hires: 15, departures: 9 },
+    { q: "Q3 '25", hires: 9, departures: 11 },
+    { q: "Q4 '25", hires: 14, departures: 6 },
+  ];
+  const currentHeadcount = 342;
+  const attritionRate = 14.2;
+  const industryAttritionBenchmark = 17.8;
+
+  const deptSpend = [
+    { dept: "Engineering", thisYear: 4.8, lastYear: 4.1, outcome: "3 major releases shipped, up from 2" },
+    { dept: "Sales & Marketing", thisYear: 3.2, lastYear: 2.6, outcome: "Revenue grew 24% vs 24% spend growth" },
+    { dept: "Customer Success", thisYear: 1.4, lastYear: 1.5, outcome: "Churn fell despite lower spend" },
+    { dept: "Operations", thisYear: 1.1, lastYear: 1.2, outcome: "Consolidated two vendor contracts" },
+  ];
+
+  const decisionImpacts = [
+    {
+      title: "Dedicated-owner onboarding model",
+      when: "Rolled out after the Atlas Corp loss",
+      impact: "Onboarding-related churn: 0% since rollout, down from 3 accounts/year",
+      tone: "green" as const,
+    },
+    {
+      title: "Phased-rollout pricing (vs. discounting)",
+      when: "Standardized after the Meridian Co. negotiation",
+      impact: "Average deal margin held at 61%, vs. 48% when discounting was the default",
+      tone: "gold" as const,
+    },
+    {
+      title: "Falcon migration timeline",
+      when: "Ran 5 weeks over schedule in Q2",
+      impact: "New policy: +30% time buffer on migrations touching data older than 3 years",
+      tone: "rose" as const,
+    },
+  ];
+
+  const regionLabel: Record<typeof region, string> = {
+    all: "All Regions",
+    na: "North America",
+    emea: "EMEA",
+    apac: "APAC",
+  };
+
+  return (
+    <div>
+      <div className="panel-eyebrow">Institutional Intelligence</div>
+      <div className="panel-title">Insights &amp; Analytics</div>
+      <span className="illustrative-badge">Illustrative — grounded in realistic industry benchmarks</span>
+      <p className="panel-sub">
+        The kind of cross-functional view a consultant would spend weeks assembling — revenue, sales
+        performance, people, spend, and the measurable outcome of past decisions, all in one place and
+        always current.
+      </p>
+
+      {/* Top stat row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 28 }}>
+        <StatCard label="Trailing 4Q Revenue" value={`$${totalByQuarter.reduce((a, b) => a + b, 0).toFixed(1)}M`} sub={`+${yoyGrowth}% vs Q1`} tone="gold" />
+        <StatCard label="Headcount" value={String(currentHeadcount)} sub={`${headcountTrend[3].hires} hired this Q`} tone="violet" />
+        <StatCard label="Attrition Rate" value={`${attritionRate}%`} sub={`vs ${industryAttritionBenchmark}% industry avg`} tone="green" />
+        <StatCard label="Avg. Deal Margin" value="61%" sub="up from 48% pre-2024" tone="rose" />
+      </div>
+
+      {/* Revenue section */}
+      <div className="advisor-block">
+        <h4>Revenue by Region</h4>
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          {(["all", "na", "emea", "apac"] as const).map((r) => (
+            <button
+              key={r}
+              onClick={() => setRegion(r)}
+              style={{
+                padding: "6px 14px",
+                borderRadius: 999,
+                border: `1px solid ${region === r ? "var(--gold)" : "var(--hairline)"}`,
+                background: region === r ? "var(--gold-soft)" : "transparent",
+                color: region === r ? "var(--gold)" : "var(--ink-dim)",
+                fontSize: 12.5,
+                cursor: "pointer",
+              }}
+            >
+              {regionLabel[r]}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 20, height: 160, padding: "0 4px" }}>
+          {quarters.map((q, i) => {
+            const d = revenueByQuarter[i];
+            const value = region === "all" ? d.na + d.emea + d.apac : d[region as "na" | "emea" | "apac"];
+            const heightPct = (value / maxRevenue) * 100;
+            return (
+              <div key={q} style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1, height: "100%", justifyContent: "flex-end" }}>
+                <div style={{ fontSize: 12, color: "var(--ink-dim)", marginBottom: 6, fontFamily: "var(--mono)" }}>
+                  ${value.toFixed(1)}M
+                </div>
+                <div
+                  style={{
+                    width: "60%",
+                    height: `${heightPct}%`,
+                    minHeight: 4,
+                    borderRadius: "6px 6px 0 0",
+                    background: "linear-gradient(180deg, var(--gold), var(--gold-soft))",
+                  }}
+                />
+                <div style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 8 }}>{q}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Sales leaderboard */}
+      <div className="advisor-block">
+        <h4>Sales Performance — This Quarter</h4>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {salesLeaderboard.map((rep) => (
+            <div key={rep.name} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 110, fontSize: 13, color: "var(--ink)" }}>{rep.name}</div>
+              <div style={{ flex: 1, height: 8, borderRadius: 4, background: "var(--bg-elev-3)", overflow: "hidden" }}>
+                <div style={{ width: `${rep.quota}%`, maxWidth: "100%", height: "100%", background: rep.quota >= 100 ? "var(--green)" : "var(--violet)" }} />
+              </div>
+              <div style={{ width: 130, fontSize: 12, color: "var(--ink-faint)", fontFamily: "var(--mono)", textAlign: "right" }}>
+                {rep.deals} deals · {rep.winRate}% win · {rep.quota}% quota
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Headcount / attrition */}
+      <div className="advisor-block">
+        <h4>Hiring vs. Attrition</h4>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 24, height: 130, padding: "0 4px", marginBottom: 8 }}>
+          {headcountTrend.map((h) => {
+            const max = 16;
+            return (
+              <div key={h.q} style={{ display: "flex", gap: 6, alignItems: "flex-end", flex: 1, height: "100%", justifyContent: "center" }}>
+                <div style={{ width: 18, height: `${(h.hires / max) * 100}%`, borderRadius: "4px 4px 0 0", background: "var(--green)" }} title={`${h.hires} hires`} />
+                <div style={{ width: 18, height: `${(h.departures / max) * 100}%`, borderRadius: "4px 4px 0 0", background: "var(--rose)" }} title={`${h.departures} departures`} />
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: "flex", gap: 24, padding: "0 4px", marginBottom: 6 }}>
+          {headcountTrend.map((h) => (
+            <div key={h.q} style={{ flex: 1, textAlign: "center", fontSize: 11.5, color: "var(--ink-faint)" }}>{h.q}</div>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 16, fontSize: 12.5, color: "var(--ink-dim)" }}>
+          <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: "var(--green)", marginRight: 6 }} />Hires</span>
+          <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: "var(--rose)", marginRight: 6 }} />Departures</span>
+        </div>
+      </div>
+
+      {/* Spend vs outcomes */}
+      <div className="advisor-block">
+        <h4>Spend vs. Outcomes by Department</h4>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {deptSpend.map((d) => {
+            const change = Math.round(((d.thisYear - d.lastYear) / d.lastYear) * 100);
+            return (
+              <div key={d.dept} style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid var(--hairline)", background: "rgba(255,255,255,0.015)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+                  <span style={{ fontSize: 14, color: "var(--ink)" }}>{d.dept}</span>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: 12.5, color: change >= 0 ? "var(--gold)" : "var(--green)" }}>
+                    ${d.thisYear}M {change >= 0 ? "+" : ""}{change}% vs last year
+                  </span>
+                </div>
+                <p style={{ fontSize: 12.5, color: "var(--ink-dim)" }}>{d.outcome}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Decision impact */}
+      <div className="advisor-block">
+        <h4>Impact of Past Decisions</h4>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {decisionImpacts.map((d) => (
+            <div
+              key={d.title}
+              style={{
+                padding: "12px 14px",
+                borderRadius: 12,
+                border: `1px solid var(--${d.tone}-soft)`,
+                background: `var(--${d.tone}-soft)`,
+              }}
+            >
+              <div style={{ fontSize: 13.5, color: "var(--ink)", marginBottom: 2 }}>{d.title}</div>
+              <div style={{ fontSize: 11.5, color: "var(--ink-faint)", marginBottom: 6 }}>{d.when}</div>
+              <div style={{ fontSize: 12.5, color: "var(--ink-dim)" }}>{d.impact}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, sub, tone }: { label: string; value: string; sub: string; tone: "gold" | "violet" | "green" | "rose" }) {
+  return (
+    <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--hairline)", background: "rgba(255,255,255,0.015)" }}>
+      <div style={{ fontSize: 11, fontFamily: "var(--mono)", color: "var(--ink-faint)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 24, fontFamily: "var(--serif)", color: `var(--${tone})`, marginBottom: 4 }}>{value}</div>
+      <div style={{ fontSize: 12, color: "var(--ink-dim)" }}>{sub}</div>
     </div>
   );
 }

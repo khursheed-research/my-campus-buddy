@@ -649,6 +649,198 @@ function LearningPanel({ showToast, events }: { showToast: (t: string) => void; 
   );
 }
 
+function buildInsightsContext(d: {
+  totalByQuarter: number[];
+  revenueByIndustry: { label: string; pct: number }[];
+  salesLeaderboard: { name: string; deals: number; winRate: number; quota: number }[];
+  headcountTrend: { q: string; hires: number; departures: number }[];
+  currentHeadcount: number;
+  attritionRate: number;
+  industryAttritionBenchmark: number;
+  deptSpend: { dept: string; thisYear: number; lastYear: number; outcome: string }[];
+  hiringSourceRetention: { source: string; avgTenureYears: number; hiresLastYear: number }[];
+  hiringGeoRetention: { region: string; avgTenureYears: number }[];
+  exitDestinations: { where: string; pct: number }[];
+  exitFactor: string;
+  campaignHistory10yr: { year: number; name: string; spend: number; pipeline: number; roi: number }[];
+  decisionImpacts: { title: string; when: string; impact: string }[];
+}): string {
+  const lines: string[] = [];
+  lines.push(`REVENUE BY QUARTER (last 4Q, $M): ${d.totalByQuarter.join(", ")}`);
+  lines.push(`REVENUE BY INDUSTRY: ${d.revenueByIndustry.map((r) => `${r.label} ${r.pct}%`).join("; ")}`);
+  lines.push(`SALES LEADERBOARD (this quarter): ${d.salesLeaderboard.map((r) => `${r.name} — ${r.deals} deals, ${r.winRate}% win rate, ${r.quota}% of quota`).join("; ")}`);
+  lines.push(`HEADCOUNT: ${d.currentHeadcount} total. Attrition rate ${d.attritionRate}% vs ${d.industryAttritionBenchmark}% industry benchmark.`);
+  lines.push(`HIRING/DEPARTURES BY QUARTER: ${d.headcountTrend.map((h) => `${h.q}: ${h.hires} hired, ${h.departures} departed`).join("; ")}`);
+  lines.push(`DEPARTMENT SPEND vs LAST YEAR: ${d.deptSpend.map((s) => `${s.dept} $${s.thisYear}M (was $${s.lastYear}M) — ${s.outcome}`).join("; ")}`);
+  lines.push(`RETENTION BY HIRING SOURCE (avg tenure): ${d.hiringSourceRetention.map((h) => `${h.source} ${h.avgTenureYears}y (${h.hiresLastYear} hires last year)`).join("; ")}`);
+  lines.push(`RETENTION BY GEOGRAPHY (avg tenure): ${d.hiringGeoRetention.map((h) => `${h.region} ${h.avgTenureYears}y`).join("; ")}`);
+  lines.push(`EXIT DESTINATIONS: ${d.exitDestinations.map((e) => `${e.where} ${e.pct}%`).join("; ")}`);
+  lines.push(`EXIT FACTOR INSIGHT: ${d.exitFactor}`);
+  lines.push(
+    `MARKETING CAMPAIGN PERFORMANCE, LAST 10 YEARS (spend $M, pipeline generated $M, ROI multiple): ${d.campaignHistory10yr
+      .map((c) => `${c.year} "${c.name}" — spend $${c.spend}M, pipeline $${c.pipeline}M, ${c.roi}x ROI`)
+      .join("; ")}`
+  );
+  lines.push(`PAST DECISION IMPACTS: ${d.decisionImpacts.map((i) => `"${i.title}" (${i.when}) — ${i.impact}`).join("; ")}`);
+  return lines.join("\n");
+}
+
+function InsightsChat({ insightsContext }: { insightsContext: string }) {
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const logRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
+  }, [messages, sending]);
+
+  async function send(text: string) {
+    if (!text.trim() || sending) return;
+    const next = [...messages, { role: "user" as const, content: text }];
+    setMessages(next);
+    setInput("");
+    setSending(true);
+    try {
+      const res = await fetch(`${FUNCTIONS_URL}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text, history: next.slice(-10), context: insightsContext }),
+      });
+      const data = await res.json();
+      if (data.reply) {
+        setMessages((m) => [...m, { role: "assistant", content: data.reply }]);
+      } else {
+        setMessages((m) => [
+          ...m,
+          { role: "assistant", content: data.error || "I ran into an issue just now — mind trying again?" },
+        ]);
+      }
+    } catch {
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", content: "I couldn't reach the AI backend just now — mind trying again?" },
+      ]);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  const chips = [
+    "Which marketing campaign has performed very well in the past 10 years?",
+    "Which geography or industry should we double down on?",
+    "Why do people actually leave, beyond the obvious answer?",
+  ];
+
+  return (
+    <div className="advisor-block" style={{ marginBottom: 28 }}>
+      <h4>Ask About These Numbers</h4>
+      <p style={{ fontSize: 12.5, color: "var(--ink-dim)", marginBottom: 12 }}>
+        The charts below are the headline view — ask a direct question and the AI will cross-reference
+        the full underlying dataset, not just what's charted.
+      </p>
+
+      {messages.length > 0 && (
+        <div
+          ref={logRef}
+          style={{
+            maxHeight: 260,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            marginBottom: 12,
+            padding: "2px 2px 2px 2px",
+          }}
+        >
+          {messages.map((m, i) => (
+            <div
+              key={i}
+              style={{
+                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+                maxWidth: "86%",
+                padding: "9px 13px",
+                borderRadius: 12,
+                fontSize: 13,
+                lineHeight: 1.55,
+                background: m.role === "user" ? "var(--violet-soft)" : "var(--bg-elev-2)",
+                border: `1px solid ${m.role === "user" ? "rgba(140,160,255,0.25)" : "var(--hairline)"}`,
+                color: "var(--ink)",
+              }}
+            >
+              {m.content}
+            </div>
+          ))}
+          {sending && (
+            <div style={{ alignSelf: "flex-start", fontSize: 12.5, color: "var(--ink-faint)", padding: "4px 2px" }}>
+              Cross-referencing the data…
+            </div>
+          )}
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+        {chips.map((c) => (
+          <button
+            key={c}
+            onClick={() => send(c)}
+            disabled={sending}
+            style={{
+              fontSize: 12,
+              padding: "7px 12px",
+              borderRadius: 999,
+              border: "1px solid var(--hairline-strong)",
+              color: "var(--ink-dim)",
+              background: "transparent",
+              cursor: sending ? "default" : "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", gap: 10 }}>
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && send(input)}
+          placeholder="Ask a question about revenue, hiring, marketing, or past decisions…"
+          style={{
+            flex: 1,
+            background: "var(--bg-elev-2)",
+            border: "1px solid var(--hairline)",
+            borderRadius: 999,
+            padding: "11px 16px",
+            color: "var(--ink)",
+            fontSize: 13.5,
+            fontFamily: "inherit",
+          }}
+        />
+        <button
+          onClick={() => send(input)}
+          disabled={sending}
+          aria-label="Send"
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: "50%",
+            background: "var(--gold)",
+            color: "var(--gold-ink)",
+            border: "none",
+            flexShrink: 0,
+            cursor: sending ? "default" : "pointer",
+          }}
+        >
+          →
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function InsightsPanel() {
   const [region, setRegion] = useState<"all" | "na" | "emea" | "apac">("all");
 
@@ -725,6 +917,19 @@ function InsightsPanel() {
   ];
   const maxPipeline = Math.max(...campaignPerformance.map((c) => c.pipelineGenerated));
 
+  const campaignHistory10yr = [
+    { year: 2016, name: "Campus Outreach Tour", spend: 0.3, pipeline: 0.9 },
+    { year: 2017, name: "Vertical ABM Pilot (Finance)", spend: 0.25, pipeline: 1.7 },
+    { year: 2018, name: "Content & SEO Overhaul", spend: 0.4, pipeline: 1.5 },
+    { year: 2019, name: "Vertical ABM Expansion (Healthcare)", spend: 0.6, pipeline: 2.8 },
+    { year: 2020, name: "Virtual Events Pivot", spend: 0.5, pipeline: 1.6 },
+    { year: 2021, name: "Partner Co-Marketing Program", spend: 0.8, pipeline: 3.1 },
+    { year: 2022, name: "Rebrand Launch Campaign", spend: 1.1, pipeline: 4.2 },
+    { year: 2023, name: "Vertical ABM (Manufacturing)", spend: 1.4, pipeline: 5.6 },
+    { year: 2024, name: "AI Brain Product Launch Push", spend: 1.6, pipeline: 6.1 },
+    { year: 2025, name: "Insights Platform Relaunch Campaign", spend: 1.9, pipeline: 9.4 },
+  ].map((c) => ({ ...c, roi: Math.round((c.pipeline / c.spend) * 10) / 10 }));
+
   const decisionImpacts = [
     {
       title: "Dedicated-owner onboarding model",
@@ -763,6 +968,25 @@ function InsightsPanel() {
         performance, people, spend, and the measurable outcome of past decisions, all in one place and
         always current.
       </p>
+
+      <InsightsChat
+        insightsContext={buildInsightsContext({
+          totalByQuarter,
+          revenueByIndustry,
+          salesLeaderboard,
+          headcountTrend,
+          currentHeadcount,
+          attritionRate,
+          industryAttritionBenchmark,
+          deptSpend,
+          hiringSourceRetention,
+          hiringGeoRetention,
+          exitDestinations,
+          exitFactor,
+          campaignHistory10yr,
+          decisionImpacts,
+        })}
+      />
 
       {/* Top stat row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 28 }}>

@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     return Response.json({ error: "Invalid request body" }, { status: 400, headers: CORS_HEADERS });
   }
 
-  const { message, history } = body || {};
+  const { message, history, context } = body || {};
   if (!message || typeof message !== "string" || !message.trim()) {
     return Response.json({ error: "Missing message" }, { status: 400, headers: CORS_HEADERS });
   }
@@ -72,15 +72,29 @@ Deno.serve(async (req) => {
     : [];
 
   const latestDoc = await getLatestDocument(supabaseUrl, serviceKey);
-  const effectiveSystemPrompt = latestDoc
-    ? `${SYSTEM_PROMPT}
+  let effectiveSystemPrompt = SYSTEM_PROMPT;
 
-An employee has also uploaded a real document called "${latestDoc.filename}". You can answer questions about it directly, in addition to the company knowledge above. Here is its content:
+  if (typeof context === "string" && context.trim()) {
+    effectiveSystemPrompt += `
+
+You also have access to the following data for this specific conversation. Use it directly to
+answer — do specific comparisons and pull out non-obvious patterns rather than just restating
+numbers. If asked something this data doesn't cover, say so rather than guessing:
+
+"""
+${context.trim()}
+"""`;
+  }
+
+  if (latestDoc) {
+    effectiveSystemPrompt += `
+
+An employee has also uploaded a real document called "${latestDoc.filename}". You can answer questions about it directly, in addition to everything above. Here is its content:
 
 """
 ${latestDoc.content}
-"""`
-    : SYSTEM_PROMPT;
+"""`;
+  }
 
   const contents = [
     ...safeHistory.map((m: any) => ({

@@ -19,6 +19,16 @@ const KNOWLEDGE_SOURCES = [
   { icon: "🗣", title: "Human Experience", body: "Quick voice notes and asides — \"this always works,\" \"never promise that\" — captured before they disappear with a person." },
 ];
 
+const INSIGHT_EXAMPLES = [
+  { icon: "📈", title: "Decision impact, years later", body: "A policy the CEO set five years ago — what actually happened afterward? My Campus Buddy traces the outcome, not just the decision." },
+  { icon: "🌍", title: "Where the deals really come from", body: "Which geography, which industry, which company is driving the most revenue — patterns no single sales report shows on its own." },
+  { icon: "🎓", title: "Who stays, and why", body: "Which college, institution, or region produces hires who stay the longest — so hiring decisions get sharper over time." },
+  { icon: "🚪", title: "Where people go when they leave", body: "What happens after someone exits, and what the real, recurring factor behind departures actually is." },
+  { icon: "📣", title: "What marketing actually worked", body: "How campaigns performed — not just last quarter, but across the last five years — surfaced automatically, not dug out of old decks." },
+  { icon: "🧠", title: "What no executive can hold in their head", body: "Every one of these takes cross-referencing years of scattered activity. My Campus Buddy does it continuously, in the background." },
+];
+
+
 export default function Home() {
   return (
     <>
@@ -30,6 +40,7 @@ export default function Home() {
         <div className="nav-links">
           <a href="#problem">The Problem</a>
           <a href="#how">How It Works</a>
+          <a href="#insights">The Insights</a>
           <a href="#roles">Who It's For</a>
           <a href="#compare">Why It Matters</a>
         </div>
@@ -42,6 +53,7 @@ export default function Home() {
       <WhatIsIt />
       <HowItWorks />
       <HowItLearns />
+      <InsightsSection />
       <WhoUsesIt />
       <Compare />
       <FomoSection />
@@ -234,6 +246,33 @@ function HowItLearns() {
         </div>
         <div className="steps-grid">
           {KNOWLEDGE_SOURCES.map((k) => (
+            <div className="step-card" key={k.title}>
+              <div className="icon">{k.icon}</div>
+              <h4>{k.title}</h4>
+              <p>{k.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function InsightsSection() {
+  return (
+    <section className="section" id="insights">
+      <div className="wrap">
+        <div className="section-head center">
+          <div className="eyebrow" style={{ justifyContent: "center" }}>Beyond Memory</div>
+          <h2>It doesn't just remember. It sees patterns no one else could.</h2>
+          <p>
+            Storing what happened is only half of it. My Campus Buddy cross-references years of scattered
+            activity — deals, hires, decisions, campaigns — to surface insight no single executive could
+            hold in their head or dig out on their own.
+          </p>
+        </div>
+        <div className="steps-grid">
+          {INSIGHT_EXAMPLES.map((k) => (
             <div className="step-card" key={k.title}>
               <div className="icon">{k.icon}</div>
               <h4>{k.title}</h4>

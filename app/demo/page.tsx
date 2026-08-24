@@ -688,6 +688,43 @@ function InsightsPanel() {
     { dept: "Operations", thisYear: 1.1, lastYear: 1.2, outcome: "Consolidated two vendor contracts" },
   ];
 
+  const revenueByIndustry = [
+    { label: "Financial Services", pct: 32 },
+    { label: "Healthcare", pct: 24 },
+    { label: "Manufacturing", pct: 19 },
+    { label: "Education", pct: 14 },
+    { label: "Retail", pct: 11 },
+  ];
+
+  const hiringSourceRetention = [
+    { source: "State University Network", avgTenureYears: 4.6, hiresLastYear: 22 },
+    { source: "Referral (internal)", avgTenureYears: 4.1, hiresLastYear: 31 },
+    { source: "Coding Bootcamp Partners", avgTenureYears: 2.3, hiresLastYear: 18 },
+    { source: "General Job Boards", avgTenureYears: 1.8, hiresLastYear: 27 },
+  ];
+  const hiringGeoRetention = [
+    { region: "Midwest, US", avgTenureYears: 4.4 },
+    { region: "Northeast, US", avgTenureYears: 3.6 },
+    { region: "West Coast, US", avgTenureYears: 2.4 },
+    { region: "Remote (int'l)", avgTenureYears: 3.1 },
+  ];
+
+  const exitDestinations = [
+    { where: "Direct competitor", pct: 34 },
+    { where: "Larger enterprise co.", pct: 27 },
+    { where: "Startup / early-stage", pct: 19 },
+    { where: "Left workforce / other", pct: 20 },
+  ];
+  const exitFactor = "Compensation cited in 41% of exits, but of those, 68% also flagged \"unclear growth path\" — the growth path, not pay, is the recurring lead indicator.";
+
+  const campaignPerformance = [
+    { year: "2022", spend: 1.1, pipelineGenerated: 4.2 },
+    { year: "2023", spend: 1.4, pipelineGenerated: 5.6 },
+    { year: "2024", spend: 1.6, pipelineGenerated: 6.1 },
+    { year: "2025", spend: 1.9, pipelineGenerated: 9.4 },
+  ];
+  const maxPipeline = Math.max(...campaignPerformance.map((c) => c.pipelineGenerated));
+
   const decisionImpacts = [
     {
       title: "Dedicated-owner onboarding model",
@@ -783,6 +820,22 @@ function InsightsPanel() {
         </div>
       </div>
 
+      {/* Revenue by industry */}
+      <div className="advisor-block">
+        <h4>Revenue by Industry</h4>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {revenueByIndustry.map((r) => (
+            <div key={r.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 150, fontSize: 13, color: "var(--ink)" }}>{r.label}</div>
+              <div style={{ flex: 1, height: 8, borderRadius: 4, background: "var(--bg-elev-3)", overflow: "hidden" }}>
+                <div style={{ width: `${r.pct * 2.5}%`, maxWidth: "100%", height: "100%", background: "var(--violet)" }} />
+              </div>
+              <div style={{ width: 40, fontSize: 12, color: "var(--ink-faint)", fontFamily: "var(--mono)", textAlign: "right" }}>{r.pct}%</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Sales leaderboard */}
       <div className="advisor-block">
         <h4>Sales Performance — This Quarter</h4>
@@ -867,6 +920,86 @@ function InsightsPanel() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Hiring source & retention */}
+      <div className="advisor-block">
+        <h4>Who Stays — By Hiring Source &amp; Geography</h4>
+        <p style={{ fontSize: 12.5, color: "var(--ink-dim)", marginBottom: 14 }}>
+          Average tenure, broken down by where a hire came from and where they're based.
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+          <div>
+            <div style={{ fontSize: 11.5, color: "var(--ink-faint)", fontFamily: "var(--mono)", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>By Source</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+              {hiringSourceRetention.map((h) => (
+                <div key={h.source} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ flex: 1, fontSize: 12.5, color: "var(--ink)" }}>{h.source}</div>
+                  <div style={{ fontSize: 12, fontFamily: "var(--mono)", color: "var(--green)" }}>{h.avgTenureYears}y avg</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11.5, color: "var(--ink-faint)", fontFamily: "var(--mono)", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>By Geography</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+              {hiringGeoRetention.map((h) => (
+                <div key={h.region} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ flex: 1, fontSize: 12.5, color: "var(--ink)" }}>{h.region}</div>
+                  <div style={{ fontSize: 12, fontFamily: "var(--mono)", color: "var(--green)" }}>{h.avgTenureYears}y avg</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Exit destinations & factors */}
+      <div className="advisor-block">
+        <h4>Where People Go — And Why</h4>
+        <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 14 }}>
+          {exitDestinations.map((e) => (
+            <div key={e.where} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 170, fontSize: 12.5, color: "var(--ink)" }}>{e.where}</div>
+              <div style={{ flex: 1, height: 8, borderRadius: 4, background: "var(--bg-elev-3)", overflow: "hidden" }}>
+                <div style={{ width: `${e.pct * 2.5}%`, maxWidth: "100%", height: "100%", background: "var(--rose)" }} />
+              </div>
+              <div style={{ width: 34, fontSize: 12, color: "var(--ink-faint)", fontFamily: "var(--mono)", textAlign: "right" }}>{e.pct}%</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid var(--gold-soft)", background: "var(--gold-soft)" }}>
+          <div style={{ fontSize: 11, fontFamily: "var(--mono)", color: "var(--gold)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            The insight a survey alone wouldn't catch
+          </div>
+          <div style={{ fontSize: 12.5, color: "var(--ink-dim)" }}>{exitFactor}</div>
+        </div>
+      </div>
+
+      {/* Marketing performance */}
+      <div className="advisor-block">
+        <h4>Marketing Campaign Performance — 4 Years</h4>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 24, height: 140, padding: "0 4px", marginBottom: 8 }}>
+          {campaignPerformance.map((c) => (
+            <div key={c.year} style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1, height: "100%", justifyContent: "flex-end" }}>
+              <div style={{ fontSize: 11.5, color: "var(--ink-dim)", marginBottom: 6, fontFamily: "var(--mono)" }}>${c.pipelineGenerated}M</div>
+              <div
+                style={{
+                  width: "55%",
+                  height: `${(c.pipelineGenerated / maxPipeline) * 100}%`,
+                  minHeight: 4,
+                  borderRadius: "6px 6px 0 0",
+                  background: "linear-gradient(180deg, var(--violet), var(--violet-soft))",
+                }}
+              />
+              <div style={{ fontSize: 11.5, color: "var(--ink-faint)", marginTop: 8 }}>{c.year}</div>
+            </div>
+          ))}
+        </div>
+        <p style={{ fontSize: 12.5, color: "var(--ink-dim)" }}>
+          Pipeline generated per dollar spent has grown every year — from $3.8 return per $1 in 2022 to
+          $4.9 per $1 in 2025 — a trend no single campaign report would reveal on its own.
+        </p>
       </div>
     </div>
   );

@@ -23,17 +23,30 @@ PEOPLE:
 
 If asked something conversational or unrelated to Northwind, respond briefly and steer back to what you can help with as the company's AI Brain.`;
 
-const GEMINI_MODEL_CANDIDATES = ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-3.5-flash", "gemini-2.5-flash"];
+const GEMINI_MODEL_CANDIDATES = ["gemini-2.5-flash-lite", "gemini-flash-latest", "gemini-2.5-flash", "gemini-3.5-flash"];
+
+let cachedDoc: { filename: string; content: string } | null | undefined;
+let cachedDocAt = 0;
+const DOC_CACHE_MS = 20000;
 
 async function getLatestDocument(supabaseUrl: string, serviceKey: string) {
+  if (cachedDoc !== undefined && Date.now() - cachedDocAt < DOC_CACHE_MS) {
+    return cachedDoc;
+  }
   try {
     const resp = await fetch(
       `${supabaseUrl}/rest/v1/documents?select=filename,content&order=created_at.desc&limit=1`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     );
-    if (!resp.ok) return null;
+    if (!resp.ok) {
+      cachedDoc = null;
+      cachedDocAt = Date.now();
+      return null;
+    }
     const rows = await resp.json();
-    return rows[0] || null;
+    cachedDoc = rows[0] || null;
+    cachedDocAt = Date.now();
+    return cachedDoc;
   } catch {
     return null;
   }
@@ -68,7 +81,7 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
   const safeHistory = Array.isArray(history)
-    ? history.filter((m: any) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string").slice(-10)
+    ? history.filter((m: any) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string").slice(-8)
     : [];
 
   const latestDoc = await getLatestDocument(supabaseUrl, serviceKey);
@@ -110,18 +123,30 @@ ${latestDoc.content}
     for (let pass = 0; pass < 2 && (!resp || !resp.ok); pass++) {
       if (pass > 0) await new Promise((r) => setTimeout(r, 800));
       for (const model of GEMINI_MODEL_CANDIDATES) {
-        resp = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              systemInstruction: { parts: [{ text: effectiveSystemPrompt }] },
-              contents,
-              generationConfig: { maxOutputTokens: 500, temperature: 0.6 },
-            }),
-          }
-        );
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        try {
+          resp = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                systemInstruction: { parts: [{ text: effectiveSystemPrompt }] },
+                contents,
+                generationConfig: { maxOutputTokens: 320, temperature: 0.6 },
+              }),
+              signal: controller.signal,
+            }
+          );
+        } catch (fetchErr) {
+          lastErrText = String(fetchErr);
+          console.error(`Gemini model "${model}" request errored/timed out (pass ${pass + 1}):`, fetchErr);
+          resp = null;
+          continue;
+        } finally {
+          clearTimeout(timeoutId);
+        }
         if (resp.ok) break;
         lastErrText = await resp.text();
         console.error(`Gemini model "${model}" failed (pass ${pass + 1}):`, resp.status, lastErrText);

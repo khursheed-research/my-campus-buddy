@@ -33,10 +33,10 @@ export default function Home() {
   return (
     <>
       <nav className="site-nav">
-        <div className="brand">
+        <Link href="/" className="brand">
           <span className="brand-mark" />
           My Campus Buddy
-        </div>
+        </Link>
         <div className="nav-links">
           <a href="#problem">The Problem</a>
           <a href="#how">How It Works</a>

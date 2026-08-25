@@ -84,10 +84,10 @@ export default function Demo() {
   return (
     <>
       <nav className="site-nav">
-        <div className="brand">
+        <Link href="/" className="brand">
           <span className="brand-mark" />
           My Campus Buddy
-        </div>
+        </Link>
         <div className="nav-links">
           <Link href="/">← Back to overview</Link>
         </div>
@@ -615,17 +615,32 @@ function VoicePanel({ showToast }: { showToast: (t: string) => void }) {
   );
 }
 
+const MEETING_SCENARIOS = [
+  { title: "Weekly Pipeline Review — Enterprise Sales", extracted: "Meridian Co.'s renewal risk is the integration timeline, not price — flagged to Priya Nair." },
+  { title: "Onboarding Retro — Vantage Retail", extracted: "Dedicated-owner model cut onboarding to 9 days, the fastest yet. Logged as a repeatable pattern." },
+  { title: "Exit Interview — Senior Platform Engineer", extracted: "Cited unclear promotion path, not compensation. Added to the attrition-factor pattern." },
+  { title: "Marketing Retro — Q3 Vertical ABM", extracted: "Healthcare vertical campaign outperformed plan 2:1 on spend. Flagged for a budget increase." },
+  { title: "Vendor Renewal Call — Logistics Partner", extracted: "Renegotiated SLA after 2 late shipments this quarter. Logged as precedent for future vendor terms." },
+  { title: "All-Hands Q&A — CEO", extracted: "New remote-hire equity policy — cross-referenced against last year's similar policy outcome." },
+  { title: "Customer Escalation — Bramwell Account", extracted: "Response-time gap in on-call coverage. Connected to the 2022 incident that created the rotation." },
+];
+
 function LearningPanel({ showToast, events }: { showToast: (t: string) => void; events: MemoryEvent[] }) {
   const [meetings, setMeetings] = useState(248);
   const [lessons, setLessons] = useState(61);
   const [connections, setConnections] = useState(1204);
   const [experts, setExperts] = useState(37);
+  const [feed, setFeed] = useState<{ id: number; title: string; extracted: string; gained: number }[]>([]);
 
   function simulate() {
+    const scenario = MEETING_SCENARIOS[Math.floor(Math.random() * MEETING_SCENARIOS.length)];
+    const gained = Math.floor(Math.random() * 14) + 4;
+
     setMeetings((m) => m + 1);
     if (Math.random() < 0.5) setLessons((l) => l + 1);
-    setConnections((c) => c + Math.floor(Math.random() * 14) + 4);
+    setConnections((c) => c + gained);
     if (Math.random() < 0.25) setExperts((e) => e + 1);
+    setFeed((f) => [{ id: Date.now(), title: scenario.title, extracted: scenario.extracted, gained }, ...f].slice(0, 4));
     showToast("New meeting understood — institutional memory grew.");
   }
 
@@ -645,6 +660,31 @@ function LearningPanel({ showToast, events }: { showToast: (t: string) => void; 
         <div className="stat-box"><div className="num">{experts}</div><div className="lbl">Experts identified</div></div>
       </div>
       <button className="btn-primary" onClick={simulate}>Simulate a New Meeting</button>
+
+      {feed.length > 0 && (
+        <div style={{ marginTop: 22, display: "flex", flexDirection: "column", gap: 10 }}>
+          {feed.map((f) => (
+            <div
+              key={f.id}
+              className="feed-item"
+              style={{
+                padding: "12px 14px",
+                borderRadius: 12,
+                border: "1px solid var(--hairline)",
+                background: "rgba(255,255,255,0.015)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginBottom: 4 }}>
+                <span style={{ fontSize: 13.5, color: "var(--ink)" }}>{f.title}</span>
+                <span style={{ fontSize: 11.5, fontFamily: "var(--mono)", color: "var(--green)", whiteSpace: "nowrap" }}>
+                  +{f.gained} connections
+                </span>
+              </div>
+              <p style={{ fontSize: 12.5, color: "var(--ink-dim)" }}>{f.extracted}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

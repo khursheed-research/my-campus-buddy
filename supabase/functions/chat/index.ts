@@ -107,28 +107,36 @@ ${latestDoc.content}
   try {
     let resp: Response | null = null;
     let lastErrText = "";
-    for (const model of GEMINI_MODEL_CANDIDATES) {
-      resp = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: effectiveSystemPrompt }] },
-            contents,
-            generationConfig: { maxOutputTokens: 500, temperature: 0.6 },
-          }),
-        }
-      );
-      if (resp.ok) break;
-      lastErrText = await resp.text();
-      console.error(`Gemini model "${model}" failed:`, resp.status, lastErrText);
-      if (resp.status !== 404) break;
+    for (let pass = 0; pass < 2 && (!resp || !resp.ok); pass++) {
+      if (pass > 0) await new Promise((r) => setTimeout(r, 800));
+      for (const model of GEMINI_MODEL_CANDIDATES) {
+        resp = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: effectiveSystemPrompt }] },
+              contents,
+              generationConfig: { maxOutputTokens: 500, temperature: 0.6 },
+            }),
+          }
+        );
+        if (resp.ok) break;
+        lastErrText = await resp.text();
+        console.error(`Gemini model "${model}" failed (pass ${pass + 1}):`, resp.status, lastErrText);
+        // Try the next candidate on ANY failure (rate limits, transient 503s, model not found, etc.)
+        // — only a genuinely fatal error (bad API key) would fail identically on every candidate,
+        // and we still surface that after both passes.
+      }
     }
 
     if (!resp || !resp.ok) {
-      console.error("All Gemini model candidates failed:", lastErrText);
-      return Response.json({ error: "AI request failed" }, { status: 500, headers: CORS_HEADERS });
+      console.error("All Gemini model candidates failed across both passes:", lastErrText);
+      return Response.json(
+        { error: "The AI provider is temporarily overloaded — please try again in a few seconds." },
+        { status: 500, headers: CORS_HEADERS }
+      );
     }
 
     const data = await resp.json();

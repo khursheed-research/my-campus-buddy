@@ -41,6 +41,7 @@ const TABS = [
   { id: "advisor", label: "🎯 Strategy Advisor" },
   { id: "voice", label: "🎙 Voice Capture" },
   { id: "learning", label: "📈 AI Learning" },
+  { id: "admin", label: "⚙️ Admin & Access" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -128,6 +129,7 @@ export default function Demo() {
               {tab === "advisor" && <AdvisorPanel />}
               {tab === "voice" && <VoicePanel showToast={showToast} />}
               {tab === "learning" && <LearningPanel showToast={showToast} events={events} />}
+              {tab === "admin" && <AdminPanel showToast={showToast} />}
             </div>
           </div>
         </div>
@@ -685,6 +687,229 @@ function LearningPanel({ showToast, events }: { showToast: (t: string) => void; 
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+type Integration = {
+  name: string;
+  icon: string;
+  desc: string;
+  connected: boolean;
+};
+
+const INITIAL_INTEGRATIONS: Integration[] = [
+  { name: "Gmail / Google Workspace", icon: "📧", desc: "Learns from email threads — decisions, commitments, and context — with employee approval before anything is stored.", connected: true },
+  { name: "Slack", icon: "💬", desc: "Captures decisions and lessons surfaced in channel discussions and threads.", connected: true },
+  { name: "Microsoft Teams", icon: "🧩", desc: "Same idea as Slack, for organizations standardized on Microsoft 365.", connected: false },
+  { name: "Zoom / Meeting Recordings", icon: "🎥", desc: "Transcribes recorded meetings and extracts decisions, lessons, and who was in the room.", connected: true },
+  { name: "Google / Outlook Calendar", icon: "🗓", desc: "Understands who was present for a given decision, without needing anyone to write it down.", connected: true },
+  { name: "HR System (Workday / BambooHR)", icon: "🧑‍💼", desc: "Syncs org chart, titles, and seniority — this is what powers the clearance system below automatically.", connected: true },
+  { name: "CRM (Salesforce / HubSpot)", icon: "📈", desc: "Learns from deal notes, win/loss reasons, and account history.", connected: true },
+  { name: "Project Management (Jira / Asana / Linear)", icon: "🗂", desc: "Tracks project decisions, scope changes, and retrospectives.", connected: false },
+  { name: "Voice Notes (mobile app)", icon: "🎙", desc: "Quick spoken asides — \"this always works,\" \"never promise that\" — captured before they're lost.", connected: true },
+];
+
+type Seniority = "Executive" | "Leadership" | "Manager" | "Individual Contributor";
+
+type OrgUser = {
+  id: number;
+  name: string;
+  title: string;
+  seniority: Seniority;
+  clearance: string;
+};
+
+const CLEARANCE_BY_SENIORITY: Record<Seniority, string> = {
+  Executive: "Full access — every decision, financials, HR, and strategy record",
+  Leadership: "Department + cross-functional history, no raw compensation/HR data",
+  Manager: "Own team's decisions, lessons, and customer history",
+  "Individual Contributor": "Own work plus team-level patterns — no financials or HR data",
+};
+
+const SAMPLE_NAMES = ["Riya Sharma", "Marcus Webb", "Lena Ortiz", "Sam Whitfield", "Dara Osei", "Nikhil Rao"];
+const SAMPLE_TITLES: { title: string; seniority: Seniority }[] = [
+  { title: "Regional Sales Manager", seniority: "Manager" },
+  { title: "Marketing Coordinator", seniority: "Individual Contributor" },
+  { title: "VP Operations", seniority: "Leadership" },
+  { title: "Support Engineer", seniority: "Individual Contributor" },
+  { title: "Finance Manager", seniority: "Manager" },
+];
+
+const INITIAL_USERS: OrgUser[] = [
+  { id: 1, name: "Amara Chen", title: "CEO", seniority: "Executive", clearance: CLEARANCE_BY_SENIORITY.Executive },
+  { id: 2, name: "Priya Nair", title: "VP Sales", seniority: "Leadership", clearance: CLEARANCE_BY_SENIORITY.Leadership },
+  { id: 3, name: "Jordan Patel", title: "Head of Client Onboarding", seniority: "Leadership", clearance: CLEARANCE_BY_SENIORITY.Leadership },
+  { id: 4, name: "Tom Okafor", title: "Sales Rep", seniority: "Individual Contributor", clearance: CLEARANCE_BY_SENIORITY["Individual Contributor"] },
+];
+
+function AdminPanel({ showToast }: { showToast: (t: string) => void }) {
+  const [integrations, setIntegrations] = useState<Integration[]>(INITIAL_INTEGRATIONS);
+  const [users, setUsers] = useState<OrgUser[]>(INITIAL_USERS);
+
+  function toggleIntegration(name: string) {
+    setIntegrations((list) =>
+      list.map((i) => (i.name === name ? { ...i, connected: !i.connected } : i))
+    );
+    const target = integrations.find((i) => i.name === name);
+    showToast(target?.connected ? `Disconnected ${name}.` : `Connected ${name} — backfilling history now.`);
+  }
+
+  function addUser() {
+    const name = SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)];
+    const role = SAMPLE_TITLES[Math.floor(Math.random() * SAMPLE_TITLES.length)];
+    const newUser: OrgUser = {
+      id: Date.now(),
+      name,
+      title: role.title,
+      seniority: role.seniority,
+      clearance: CLEARANCE_BY_SENIORITY[role.seniority],
+    };
+    setUsers((u) => [...u, newUser]);
+    showToast(`Added ${name} — clearance set automatically from title.`);
+  }
+
+  function removeUser(id: number) {
+    const target = users.find((u) => u.id === id);
+    setUsers((u) => u.filter((x) => x.id !== id));
+    if (target) showToast(`Removed ${target.name}. Their contributions stay in institutional memory.`);
+  }
+
+  const connectedCount = integrations.filter((i) => i.connected).length;
+
+  return (
+    <div>
+      <div className="panel-eyebrow">Behind The Scenes</div>
+      <div className="panel-title">Admin &amp; Access</div>
+      <span className="illustrative-badge">Illustrative — the gist of how setup works</span>
+      <p className="panel-sub">
+        This is what an admin sees, not an end user. Everything above this tab is what the platform
+        learns and surfaces — this is how that gets configured: what it's allowed to read from, and who's
+        allowed to see what.
+      </p>
+
+      {/* Integrations */}
+      <div className="advisor-block">
+        <h4>Connected Sources ({connectedCount}/{integrations.length})</h4>
+        <p style={{ fontSize: 12.5, color: "var(--ink-dim)", marginBottom: 14 }}>
+          Every source is opt-in and can be scoped to specific teams or channels. Nothing is stored
+          without the underlying content passing through approval — this list only controls what the
+          AI is even allowed to look at.
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
+          {integrations.map((i) => (
+            <div
+              key={i.name}
+              style={{
+                padding: "14px 16px",
+                borderRadius: 14,
+                border: `1px solid ${i.connected ? "var(--green-soft)" : "var(--hairline)"}`,
+                background: i.connected ? "var(--green-soft)" : "rgba(255,255,255,0.015)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 17 }}>{i.icon}</span>
+                  <span style={{ fontSize: 13.5, color: "var(--ink)" }}>{i.name}</span>
+                </div>
+                <button
+                  onClick={() => toggleIntegration(i.name)}
+                  style={{
+                    fontSize: 11,
+                    padding: "5px 11px",
+                    borderRadius: 999,
+                    border: `1px solid ${i.connected ? "var(--green)" : "var(--hairline-strong)"}`,
+                    background: "transparent",
+                    color: i.connected ? "var(--green)" : "var(--ink-faint)",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
+                  }}
+                >
+                  {i.connected ? "Connected" : "Connect"}
+                </button>
+              </div>
+              <p style={{ fontSize: 12, color: "var(--ink-dim)", lineHeight: 1.5 }}>{i.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Access & clearance */}
+      <div className="advisor-block">
+        <h4>Users &amp; Clearance</h4>
+        <p style={{ fontSize: 12.5, color: "var(--ink-dim)", marginBottom: 14 }}>
+          Clearance isn't set by hand per person — it's inherited automatically from title and
+          seniority, synced from the HR system above. An admin can still override any individual case.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+          {users.map((u) => (
+            <div
+              key={u.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "10px 14px",
+                borderRadius: 12,
+                border: "1px solid var(--hairline)",
+                background: "rgba(255,255,255,0.015)",
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 140 }}>
+                <div style={{ fontSize: 13.5, color: "var(--ink)" }}>{u.name}</div>
+                <div style={{ fontSize: 11.5, color: "var(--ink-faint)" }}>{u.title}</div>
+              </div>
+              <div
+                style={{
+                  fontSize: 10.5,
+                  fontFamily: "var(--mono)",
+                  color: "var(--violet)",
+                  border: "1px solid var(--violet-soft)",
+                  background: "var(--violet-soft)",
+                  borderRadius: 999,
+                  padding: "3px 9px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {u.seniority}
+              </div>
+              <div style={{ flex: 1.4, fontSize: 12, color: "var(--ink-dim)", minWidth: 180 }}>{u.clearance}</div>
+              <button
+                onClick={() => removeUser(u.id)}
+                style={{
+                  fontSize: 11.5,
+                  padding: "5px 10px",
+                  borderRadius: 999,
+                  border: "1px solid var(--rose-soft)",
+                  background: "transparent",
+                  color: "var(--rose)",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  flexShrink: 0,
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+        <button className="btn-primary" onClick={addUser}>Add a User</button>
+      </div>
+
+      {/* How clearance works */}
+      <div className="advisor-block">
+        <h4>How Clearance Levels Work</h4>
+        <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+          {(Object.keys(CLEARANCE_BY_SENIORITY) as Seniority[]).map((s) => (
+            <div key={s} style={{ display: "flex", gap: 12, alignItems: "baseline" }}>
+              <div style={{ width: 150, fontSize: 13, color: "var(--ink)", flexShrink: 0 }}>{s}</div>
+              <div style={{ fontSize: 12.5, color: "var(--ink-dim)" }}>{CLEARANCE_BY_SENIORITY[s]}</div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

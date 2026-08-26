@@ -48,6 +48,7 @@ export default function Home() {
       </nav>
 
       <Hero />
+      <IdentitySection />
       <Problem />
       <WhyMatters />
       <WhatIsIt />
@@ -80,6 +81,27 @@ function FomoSection() {
           </p>
           <Link href="/demo" className="btn-primary">See it in action →</Link>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function IdentitySection() {
+  return (
+    <section className="section why-matters" style={{ textAlign: "center" }}>
+      <div className="wrap">
+        <div className="eyebrow" style={{ justifyContent: "center" }}>The Core Idea</div>
+        <p className="why-quote">
+          Take away a person's memory, and everything else goes with it — their name, their
+          relationships, their sense of who they are. Memory isn't a nice-to-have.{" "}
+          <span>It's what makes someone somebody.</span>
+        </p>
+        <p className="why-sub">
+          An institution is no different. Take away everything it has ever decided, learned, and
+          built, and what's left is a name on a door — not an organization. My Campus Buddy exists
+          for exactly this reason: we don't just store information. We preserve the memory that
+          makes an institution who it is, so that identity survives no matter who comes and goes.
+        </p>
       </div>
     </section>
   );

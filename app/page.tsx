@@ -62,6 +62,8 @@ export default function Home() {
 
       <footer className="site-footer">
         My Campus Buddy — a concept prototype. All institution names, people, and data shown in the demo are illustrative.
+        <br />
+        <Link href="/blueprint" style={{ color: "var(--ink-faint)" }}>For engineering: the real-world build blueprint →</Link>
       </footer>
     </>
   );

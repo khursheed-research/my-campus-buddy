@@ -14,19 +14,24 @@ their head or compute themselves** — e.g. the multi-year impact of a specific 
 which geography/industry actually drives revenue, which hiring source produces people who stay
 longest, where people go when they leave and why, how marketing has performed over years.
 
-The public site is two things:
+The public site is three things:
 - A **marketing/positioning page** (`/`) making the case for why this matters, with a FOMO angle
   for leadership.
 - A **live interactive demo** (`/demo`) of a fictional company, "Northwind Industries," showing
   the product in action — some of it wired to a real AI backend, some illustrative (see the table
   in `README.md`).
+- A **real-world build blueprint** (`/blueprint`) — this is the one meant for you, specifically.
+  It's not marketing copy or a product demo; it's the schema, roles, data flow, and open
+  architectural decisions (e.g. how call recording/transcription actually gets wired up) needed
+  to build the production version of this product. Read it before writing any backend code —
+  it's the answer to "what actually needs to be built."
 
 ## 2. Where everything lives — this is the point of this document
 
 Everything is now in **one GitHub repo**: `khursheed-research/my-campus-buddy` (public).
 
 ```
-app/                    Next.js frontend (marketing page, demo dashboard, /api/memory route)
+app/                    Next.js frontend (marketing page, demo dashboard, /blueprint spec, /api/memory route)
 lib/                    Shared frontend helpers (Supabase REST wrapper)
 supabase/functions/     Source for all 3 Supabase Edge Functions (chat, upload, app)
 supabase/migrations/    Consolidated DB schema — reproduces the Postgres schema from scratch
@@ -78,6 +83,9 @@ To fully work on this, someone needs to be added to:
   hiring-source retention, exit destinations & factors, department spend vs. outcomes, marketing
   performance over time, decision-impact cards.
 - ✅ Repo now holds all frontend code, Edge Function source, and DB schema (this handoff).
+- ✅ `/blueprint` — the real-world build spec for engineering: lead pipeline, multi-tenant
+  architecture, roles, full DB schema, voice input pipeline, AI processing, and an interactive
+  step-by-step simulation of one call moving through the entire backend.
 - 🔲 Not yet done: deeper/more benchmark-grounded mock data (discussed, not prioritized yet).
 - 🔲 Not yet done: auto-deploy pipeline for Edge Functions from this repo (currently manual via
   Supabase dashboard/CLI).
@@ -87,6 +95,9 @@ To fully work on this, someone needs to be added to:
 
 ## 5. Suggested next steps for a CTO picking this up
 
+- Read `/blueprint` first — it's written specifically to answer "what do I actually need to
+  build," including the schema, roles, and the open question of how call recording/transcription
+  gets wired up in production (two real options are laid out there with a recommendation).
 - Decide on an auth/multi-tenancy model before this handles anything beyond illustrative demo
   data — right now RLS policies are wide open by design (`supabase/migrations/`, see the comment
   there).

@@ -42,6 +42,8 @@ const TABS = [
   { id: "voice", label: "🎙 Voice Capture" },
   { id: "learning", label: "📈 AI Learning" },
   { id: "admin", label: "⚙️ Admin & Access" },
+  { id: "capture", label: "📞 Data Capture" },
+  { id: "rewards", label: "🏆 Contribution & Rewards" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -130,6 +132,8 @@ export default function Demo() {
               {tab === "voice" && <VoicePanel showToast={showToast} />}
               {tab === "learning" && <LearningPanel showToast={showToast} events={events} />}
               {tab === "admin" && <AdminPanel showToast={showToast} />}
+              {tab === "capture" && <DataCapturePanel showToast={showToast} />}
+              {tab === "rewards" && <ContributionPanel showToast={showToast} />}
             </div>
           </div>
         </div>
@@ -909,6 +913,366 @@ function AdminPanel({ showToast }: { showToast: (t: string) => void }) {
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+type CallStage = "idle" | "dialing" | "connected" | "ended" | "transcribing" | "extracting" | "done";
+
+const CALL_LEADS = [
+  { name: "Meridian Co.", contact: "David Osei, VP Procurement" },
+  { name: "Vantage Retail", contact: "Sarah Kim, Director of Ops" },
+  { name: "Atlas Corp", contact: "Marcus Webb, IT Lead" },
+];
+
+const CALL_OUTCOMES = [
+  {
+    transcriptLine: "\u201c...the price works if we can phase the rollout across two quarters instead of one...\u201d",
+    objections: ["Rollout timeline"],
+    sentiment: "Neutral, leaning positive",
+    nextStep: "Send phased rollout proposal by Friday",
+  },
+  {
+    transcriptLine: "\u201c...we already had a bad onboarding experience with our last vendor, so I need to see a dedicated point of contact...\u201d",
+    objections: ["Onboarding trust"],
+    sentiment: "Cautious",
+    nextStep: "Introduce dedicated onboarding owner in next call",
+  },
+  {
+    transcriptLine: "\u201c...honestly this looks good, just need sign-off from finance before we move forward...\u201d",
+    objections: ["Internal approval pending"],
+    sentiment: "Positive",
+    nextStep: "Follow up in 5 business days",
+  },
+];
+
+function DataCapturePanel({ showToast }: { showToast: (t: string) => void }) {
+  const [selectedLead, setSelectedLead] = useState(CALL_LEADS[0].name);
+  const [callStage, setCallStage] = useState<CallStage>("idle");
+  const [callSeconds, setCallSeconds] = useState(0);
+  const [callResult, setCallResult] = useState<(typeof CALL_OUTCOMES)[number] | null>(null);
+  const callTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [meetingClient, setMeetingClient] = useState("");
+  const [meetingCompany, setMeetingCompany] = useState("");
+  const [meetingActive, setMeetingActive] = useState(false);
+  const [meetingSeconds, setMeetingSeconds] = useState(0);
+  const [meetingMinutes, setMeetingMinutes] = useState<string[] | null>(null);
+  const meetingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (callTimerRef.current) clearInterval(callTimerRef.current);
+      if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
+    };
+  }, []);
+
+  function startCall() {
+    if (callStage !== "idle" && callStage !== "done") return;
+    setCallResult(null);
+    setCallSeconds(0);
+    setCallStage("dialing");
+    setTimeout(() => {
+      setCallStage("connected");
+      callTimerRef.current = setInterval(() => setCallSeconds((s) => s + 1), 1000);
+      const ringDuration = 4000 + Math.floor(Math.random() * 2000);
+      setTimeout(() => {
+        if (callTimerRef.current) clearInterval(callTimerRef.current);
+        setCallStage("ended");
+        setTimeout(() => setCallStage("transcribing"), 700);
+        setTimeout(() => setCallStage("extracting"), 1800);
+        setTimeout(() => {
+          const outcome = CALL_OUTCOMES[Math.floor(Math.random() * CALL_OUTCOMES.length)];
+          setCallResult(outcome);
+          setCallStage("done");
+          showToast(`Call with ${selectedLead} saved to Interactions automatically.`);
+        }, 2900);
+      }, ringDuration);
+    }, 1300);
+  }
+
+  function startMeeting() {
+    if (!meetingClient.trim() || !meetingCompany.trim()) {
+      showToast("Select a client name and company first.");
+      return;
+    }
+    setMeetingActive(true);
+    setMeetingSeconds(0);
+    setMeetingMinutes(null);
+    meetingTimerRef.current = setInterval(() => setMeetingSeconds((s) => s + 1), 1000);
+  }
+
+  function endMeeting() {
+    if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
+    setMeetingActive(false);
+    setMeetingMinutes([
+      `Discussed current process gaps at ${meetingCompany} and where delays typically happen`,
+      `${meetingClient} confirmed budget is approved for this quarter`,
+      `Agreed on a follow-up demo focused on the reporting workflow specifically`,
+      `Pattern detected: this is the third meeting this month citing "reporting delays" as the core pain point`,
+    ]);
+    showToast(`Meeting with ${meetingClient} transcribed — minutes and pattern saved automatically.`);
+  }
+
+  function fmt(s: number) {
+    const m = Math.floor(s / 60).toString().padStart(2, "0");
+    const sec = (s % 60).toString().padStart(2, "0");
+    return `${m}:${sec}`;
+  }
+
+  return (
+    <div>
+      <div className="panel-eyebrow">Where The Data Actually Comes From</div>
+      <div className="panel-title">Data Capture</div>
+      <span className="illustrative-badge">Illustrative — simulates the real capture flow</span>
+      <p className="panel-sub">
+        Everything in this product starts here. Calls are placed through the application itself
+        — not a separate phone app — so recording is automatic. In-person meetings work the same
+        way, just triggered by hand instead of by dialing.
+      </p>
+
+      {/* In-app calling */}
+      <div className="advisor-block">
+        <h4>Call a Client — Placed Through the App</h4>
+        <p style={{ fontSize: 12.5, color: "var(--ink-dim)", marginBottom: 14 }}>
+          Not the phone's native dialer. The call happens inside the product, so the recording starts the moment the call connects — nobody has to remember to hit record.
+        </p>
+        <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap", alignItems: "center" }}>
+          <select
+            value={selectedLead}
+            onChange={(e) => setSelectedLead(e.target.value)}
+            disabled={callStage !== "idle" && callStage !== "done"}
+            style={{
+              background: "var(--bg-elev-2)",
+              border: "1px solid var(--hairline)",
+              borderRadius: 10,
+              padding: "10px 14px",
+              color: "var(--ink)",
+              fontSize: 13.5,
+              fontFamily: "inherit",
+            }}
+          >
+            {CALL_LEADS.map((l) => (
+              <option key={l.name} value={l.name}>{l.name} — {l.contact}</option>
+            ))}
+          </select>
+          <button
+            className="btn-primary"
+            onClick={startCall}
+            disabled={callStage !== "idle" && callStage !== "done"}
+          >
+            {callStage === "idle" || callStage === "done" ? `Call ${selectedLead}` : "Call in progress…"}
+          </button>
+        </div>
+
+        {callStage !== "idle" && (
+          <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--hairline)", background: "rgba(255,255,255,0.015)" }}>
+            {callStage === "dialing" && (
+              <div style={{ fontSize: 13.5, color: "var(--ink-dim)" }}>📞 Dialing {selectedLead}…</div>
+            )}
+            {callStage === "connected" && (
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--green)" }} />
+                <span style={{ fontSize: 13.5, color: "var(--ink)" }}>Connected — recording automatically</span>
+                <span style={{ marginLeft: "auto", fontFamily: "var(--mono)", fontSize: 13, color: "var(--ink-faint)" }}>{fmt(callSeconds)}</span>
+              </div>
+            )}
+            {callStage === "ended" && <div style={{ fontSize: 13.5, color: "var(--ink-dim)" }}>Call ended. Uploading recording…</div>}
+            {callStage === "transcribing" && <div style={{ fontSize: 13.5, color: "var(--ink-dim)" }}>Transcribing audio…</div>}
+            {callStage === "extracting" && <div style={{ fontSize: 13.5, color: "var(--ink-dim)" }}>Extracting objections, sentiment, and next steps…</div>}
+            {callStage === "done" && callResult && (
+              <div>
+                <div style={{ fontSize: 12.5, color: "var(--ink-dim)", fontStyle: "italic", marginBottom: 10 }}>{callResult.transcriptLine}</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  <span style={{ fontSize: 11.5, padding: "4px 10px", borderRadius: 999, background: "var(--rose-soft)", color: "var(--rose)" }}>
+                    Objection: {callResult.objections[0]}
+                  </span>
+                  <span style={{ fontSize: 11.5, padding: "4px 10px", borderRadius: 999, background: "var(--violet-soft)", color: "var(--violet)" }}>
+                    Sentiment: {callResult.sentiment}
+                  </span>
+                  <span style={{ fontSize: 11.5, padding: "4px 10px", borderRadius: 999, background: "var(--green-soft)", color: "var(--green)" }}>
+                    Next step: {callResult.nextStep}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* In-person meeting mode */}
+      <div className="advisor-block">
+        <h4>In-Person Meeting Mode</h4>
+        <p style={{ fontSize: 12.5, color: "var(--ink-dim)", marginBottom: 14 }}>
+          For meetings that don't happen over a call. Select who the meeting is with, and the app listens for the duration — no note-taking required.
+        </p>
+        <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+          <input
+            type="text"
+            placeholder="Client name"
+            value={meetingClient}
+            onChange={(e) => setMeetingClient(e.target.value)}
+            disabled={meetingActive}
+            style={{ background: "var(--bg-elev-2)", border: "1px solid var(--hairline)", borderRadius: 10, padding: "10px 14px", color: "var(--ink)", fontSize: 13.5, fontFamily: "inherit", flex: 1, minWidth: 160 }}
+          />
+          <input
+            type="text"
+            placeholder="Company name"
+            value={meetingCompany}
+            onChange={(e) => setMeetingCompany(e.target.value)}
+            disabled={meetingActive}
+            style={{ background: "var(--bg-elev-2)", border: "1px solid var(--hairline)", borderRadius: 10, padding: "10px 14px", color: "var(--ink)", fontSize: 13.5, fontFamily: "inherit", flex: 1, minWidth: 160 }}
+          />
+          {!meetingActive ? (
+            <button className="btn-primary" onClick={startMeeting}>Start Meeting</button>
+          ) : (
+            <button className="btn-primary" onClick={endMeeting}>End Meeting</button>
+          )}
+        </div>
+
+        {meetingActive && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderRadius: 14, border: "1px solid var(--gold-soft)", background: "var(--gold-soft)" }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--gold)" }} />
+            <span style={{ fontSize: 13.5, color: "var(--ink)" }}>Listening — meeting with {meetingClient} at {meetingCompany}</span>
+            <span style={{ marginLeft: "auto", fontFamily: "var(--mono)", fontSize: 13, color: "var(--ink-faint)" }}>{fmt(meetingSeconds)}</span>
+          </div>
+        )}
+
+        {meetingMinutes && !meetingActive && (
+          <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--hairline)", background: "rgba(255,255,255,0.015)" }}>
+            <div style={{ fontSize: 12, fontFamily: "var(--mono)", color: "var(--ink-faint)", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Minutes of Meeting — Auto-Generated
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {meetingMinutes.map((m, i) => (
+                <div key={i} style={{ fontSize: 13, color: i === meetingMinutes.length - 1 ? "var(--gold)" : "var(--ink-dim)" }}>
+                  {i === meetingMinutes.length - 1 ? "🔎 " : "• "}{m}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+type Contributor = {
+  id: number;
+  name: string;
+  title: string;
+  callsLogged: number;
+  meetingsCaptured: number;
+  dataQuality: number;
+  score: number;
+};
+
+const INITIAL_CONTRIBUTORS: Contributor[] = [
+  { id: 1, name: "Priya Nair", title: "VP Sales", callsLogged: 84, meetingsCaptured: 22, dataQuality: 96, score: 942 },
+  { id: 2, name: "Jordan Patel", title: "Head of Client Onboarding", callsLogged: 61, meetingsCaptured: 34, dataQuality: 93, score: 887 },
+  { id: 3, name: "Tom Okafor", title: "Sales Rep", callsLogged: 58, meetingsCaptured: 11, dataQuality: 88, score: 640 },
+  { id: 4, name: "Aisha Rahman", title: "Sales Rep", callsLogged: 49, meetingsCaptured: 9, dataQuality: 91, score: 588 },
+  { id: 5, name: "Lena Vogt", title: "Sales Rep", callsLogged: 31, meetingsCaptured: 6, dataQuality: 82, score: 402 },
+];
+
+function ContributionPanel({ showToast }: { showToast: (t: string) => void }) {
+  const [contributors] = useState<Contributor[]>(
+    [...INITIAL_CONTRIBUTORS].sort((a, b) => b.score - a.score)
+  );
+  const [reportGenerated, setReportGenerated] = useState(false);
+  const [generating, setGenerating] = useState(false);
+
+  function generateReport() {
+    setGenerating(true);
+    setTimeout(() => {
+      setGenerating(false);
+      setReportGenerated(true);
+      showToast("Six-month contribution report sent to Founder & CEO.");
+    }, 1400);
+  }
+
+  const maxScore = Math.max(...contributors.map((c) => c.score));
+
+  return (
+    <div>
+      <div className="panel-eyebrow">Why People Actually Participate</div>
+      <div className="panel-title">Contribution &amp; Rewards</div>
+      <span className="illustrative-badge">Illustrative — simulates the scoring &amp; reporting cycle</span>
+      <p className="panel-sub">
+        Helping build the company's institutional memory isn't extra work people do out of
+        goodwill — it's tracked, scored, and it's a real, visible factor in salary hikes and
+        promotion decisions.
+      </p>
+
+      <div className="advisor-block">
+        <h4>Contribution Scores — This Period</h4>
+        <p style={{ fontSize: 12.5, color: "var(--ink-dim)", marginBottom: 14 }}>
+          Every logged call, captured meeting, and the quality of what was captured feeds into an
+          ongoing score — not a once-a-year guess from memory.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {contributors.map((c, i) => (
+            <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11.5,
+                  fontFamily: "var(--mono)",
+                  background: i === 0 ? "var(--gold)" : "var(--bg-elev-3)",
+                  color: i === 0 ? "var(--gold-ink)" : "var(--ink-faint)",
+                  flexShrink: 0,
+                }}
+              >
+                {i + 1}
+              </div>
+              <div style={{ width: 150, flexShrink: 0 }}>
+                <div style={{ fontSize: 13.5, color: "var(--ink)" }}>{c.name}</div>
+                <div style={{ fontSize: 11, color: "var(--ink-faint)" }}>{c.title}</div>
+              </div>
+              <div style={{ flex: 1, height: 8, borderRadius: 4, background: "var(--bg-elev-3)", overflow: "hidden" }}>
+                <div style={{ width: `${(c.score / maxScore) * 100}%`, height: "100%", background: i === 0 ? "var(--gold)" : "var(--violet)" }} />
+              </div>
+              <div style={{ width: 190, fontSize: 11.5, color: "var(--ink-faint)", fontFamily: "var(--mono)", textAlign: "right", flexShrink: 0 }}>
+                {c.callsLogged} calls · {c.meetingsCaptured} meetings · {c.dataQuality}% quality
+              </div>
+              <div style={{ width: 50, fontSize: 14, color: "var(--ink)", fontFamily: "var(--mono)", textAlign: "right", flexShrink: 0 }}>
+                {c.score}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="advisor-block">
+        <h4>Six-Month Report to the Founder &amp; CEO</h4>
+        <p style={{ fontSize: 12.5, color: "var(--ink-dim)", marginBottom: 14 }}>
+          Every six months, this ranking is compiled into a report and sent directly to
+          leadership — a real, evidence-backed input into salary hikes and promotion decisions,
+          not just activity tracked for its own sake.
+        </p>
+        {!reportGenerated ? (
+          <button className="btn-primary" onClick={generateReport} disabled={generating}>
+            {generating ? "Generating…" : "Generate Six-Month Report"}
+          </button>
+        ) : (
+          <div style={{ padding: "18px 20px", borderRadius: 14, border: "1px solid var(--gold-soft)", background: "var(--gold-soft)" }}>
+            <div style={{ fontSize: 11, fontFamily: "var(--mono)", color: "var(--gold)", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              To: Founder &amp; CEO — Contribution Report, H1
+            </div>
+            <p style={{ fontSize: 13, color: "var(--ink)", marginBottom: 10 }}>
+              Top contributor this period: <strong>{contributors[0].name}</strong> ({contributors[0].title}) — score {contributors[0].score}, driven by {contributors[0].callsLogged} logged calls and {contributors[0].meetingsCaptured} captured meetings at {contributors[0].dataQuality}% data quality.
+            </p>
+            <p style={{ fontSize: 13, color: "var(--ink-dim)" }}>
+              Recommended for consideration in this cycle's salary and promotion review, alongside standard performance criteria: <strong>{contributors[0].name}</strong> and <strong>{contributors[1].name}</strong>.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

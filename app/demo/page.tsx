@@ -961,6 +961,11 @@ function DataCapturePanel({ showToast }: { showToast: (t: string) => void }) {
   const [meetingMinutes, setMeetingMinutes] = useState<string[] | null>(null);
   const meetingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const [noteAbout, setNoteAbout] = useState("");
+  const [noteText, setNoteText] = useState("");
+  const [noteStage, setNoteStage] = useState<"idle" | "understanding" | "done">("idle");
+  const [noteResult, setNoteResult] = useState<{ department: string; sentiment: string; nextStep: string } | null>(null);
+
   useEffect(() => {
     return () => {
       if (callTimerRef.current) clearInterval(callTimerRef.current);
@@ -1019,6 +1024,31 @@ function DataCapturePanel({ showToast }: { showToast: (t: string) => void }) {
     const m = Math.floor(s / 60).toString().padStart(2, "0");
     const sec = (s % 60).toString().padStart(2, "0");
     return `${m}:${sec}`;
+  }
+
+  function saveNote() {
+    if (!noteText.trim()) {
+      showToast("Type something first — a quick note is enough.");
+      return;
+    }
+    setNoteStage("understanding");
+    setNoteResult(null);
+    setTimeout(() => {
+      const departments = ["Sales", "Operations", "HR", "Technology"];
+      const sentiments = ["Positive", "Neutral", "Cautious"];
+      const nextSteps = [
+        "Linked to related past interactions automatically",
+        "Flagged for follow-up next week",
+        "No action needed — filed for future reference",
+      ];
+      setNoteResult({
+        department: departments[Math.floor(Math.random() * departments.length)],
+        sentiment: sentiments[Math.floor(Math.random() * sentiments.length)],
+        nextStep: nextSteps[Math.floor(Math.random() * nextSteps.length)],
+      });
+      setNoteStage("done");
+      showToast("Note saved to memory — no recording needed.");
+    }, 1100);
   }
 
   return (
@@ -1150,6 +1180,53 @@ function DataCapturePanel({ showToast }: { showToast: (t: string) => void }) {
                   {i === meetingMinutes.length - 1 ? "🔎 " : "• "}{m}
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Manual text entry */}
+      <div className="advisor-block">
+        <h4>Type a Note — No Recording Needed</h4>
+        <p style={{ fontSize: 12.5, color: "var(--ink-dim)", marginBottom: 14 }}>
+          Not everything needs a call or a meeting. Type up what happened instead — a hallway conversation,
+          a decision made over email — and it's understood and saved into memory exactly the same way.
+        </p>
+        <input
+          type="text"
+          placeholder="Who or what is this about? (optional)"
+          value={noteAbout}
+          onChange={(e) => setNoteAbout(e.target.value)}
+          disabled={noteStage === "understanding"}
+          style={{ background: "var(--bg-elev-2)", border: "1px solid var(--hairline)", borderRadius: 10, padding: "10px 14px", color: "var(--ink)", fontSize: 13.5, fontFamily: "inherit", width: "100%", marginBottom: 10, boxSizing: "border-box" }}
+        />
+        <textarea
+          placeholder="Type your note here…"
+          value={noteText}
+          onChange={(e) => setNoteText(e.target.value)}
+          disabled={noteStage === "understanding"}
+          rows={3}
+          style={{ background: "var(--bg-elev-2)", border: "1px solid var(--hairline)", borderRadius: 10, padding: "10px 14px", color: "var(--ink)", fontSize: 13.5, fontFamily: "inherit", width: "100%", marginBottom: 12, boxSizing: "border-box", resize: "vertical" }}
+        />
+        <button className="btn-primary" onClick={saveNote} disabled={noteStage === "understanding"}>
+          {noteStage === "understanding" ? "Understanding…" : "Save Note"}
+        </button>
+
+        {noteStage === "done" && noteResult && (
+          <div style={{ marginTop: 14, padding: "16px 18px", borderRadius: 14, border: "1px solid var(--hairline)", background: "rgba(255,255,255,0.015)" }}>
+            <div style={{ fontSize: 12, fontFamily: "var(--mono)", color: "var(--ink-faint)", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Saved to Memory{noteAbout ? ` — ${noteAbout}` : ""}
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              <span style={{ fontSize: 11.5, padding: "4px 10px", borderRadius: 999, background: "var(--violet-soft)", color: "var(--violet)" }}>
+                Filed as: {noteResult.department}
+              </span>
+              <span style={{ fontSize: 11.5, padding: "4px 10px", borderRadius: 999, background: "var(--gold-soft)", color: "var(--gold)" }}>
+                Sentiment: {noteResult.sentiment}
+              </span>
+              <span style={{ fontSize: 11.5, padding: "4px 10px", borderRadius: 999, background: "var(--green-soft)", color: "var(--green)" }}>
+                {noteResult.nextStep}
+              </span>
             </div>
           </div>
         )}

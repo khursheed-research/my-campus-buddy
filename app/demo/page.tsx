@@ -163,8 +163,8 @@ function MicButton({ samples, onResult }: { samples: string[]; onResult: (text: 
     <button
       type="button"
       onClick={startListening}
-      aria-label="Record (simulated)"
-      title="Record instead of typing (simulated)"
+      aria-label="Speak instead of typing (simulated)"
+      title="Tap to speak — faster than typing (simulated)"
       style={{
         width: 40,
         height: 40,
@@ -1246,10 +1246,11 @@ function DataCapturePanel({ showToast }: { showToast: (t: string) => void }) {
 
       {/* Manual text entry */}
       <div className="advisor-block">
-        <h4>Type a Note — No Recording Needed</h4>
+        <h4>Add a Quick Note — Speak It or Type It</h4>
         <p style={{ fontSize: 12.5, color: "var(--ink-dim)", marginBottom: 14 }}>
-          Not everything needs a call or a meeting. Type up what happened instead — a hallway conversation,
-          a decision made over email — and it's understood and saved into memory exactly the same way.
+          Not everything needs a call or a meeting. Just hit the mic and say what happened — a hallway
+          conversation, a decision made over email — it's understood and saved into memory exactly the
+          same way a call is. Typing works too, for whenever that's easier.
         </p>
         <input
           type="text"

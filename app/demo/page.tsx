@@ -166,23 +166,30 @@ function MicButton({ samples, onResult }: { samples: string[]; onResult: (text: 
       aria-label="Record (simulated)"
       title="Record instead of typing (simulated)"
       style={{
-        width: 36,
-        height: 36,
+        width: 40,
+        height: 40,
         borderRadius: "50%",
         flexShrink: 0,
-        border: `1px solid ${active ? "var(--rose)" : "var(--hairline-strong)"}`,
-        background: active ? "var(--rose-soft)" : "transparent",
-        color: active ? "var(--rose)" : "var(--ink-faint)",
+        border: `1.5px solid ${active ? "var(--rose)" : "var(--gold)"}`,
+        background: active ? "var(--rose)" : "var(--gold)",
         cursor: active ? "default" : "pointer",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: 15,
-        fontFamily: "inherit",
+        boxShadow: active ? "0 0 0 4px var(--rose-soft)" : "0 0 0 3px var(--gold-soft)",
         transition: "all .2s ease",
       }}
     >
-      {active ? "●" : "🎙"}
+      {active ? (
+        <span style={{ width: 12, height: 12, borderRadius: 3, background: "var(--gold-ink)" }} />
+      ) : (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="9" y="2" width="6" height="12" rx="3" fill="var(--gold-ink)" />
+          <path d="M5 11a7 7 0 0 0 14 0" stroke="var(--gold-ink)" strokeWidth="2" strokeLinecap="round" fill="none" />
+          <line x1="12" y1="18" x2="12" y2="22" stroke="var(--gold-ink)" strokeWidth="2" strokeLinecap="round" />
+          <line x1="8" y1="22" x2="16" y2="22" stroke="var(--gold-ink)" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      )}
     </button>
   );
 }

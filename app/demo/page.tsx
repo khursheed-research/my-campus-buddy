@@ -148,6 +148,45 @@ export default function Demo() {
   );
 }
 
+function MicButton({ samples, onResult }: { samples: string[]; onResult: (text: string) => void }) {
+  const [active, setActive] = useState(false);
+  function startListening() {
+    if (active) return;
+    setActive(true);
+    setTimeout(() => {
+      const phrase = samples[Math.floor(Math.random() * samples.length)];
+      onResult(phrase);
+      setActive(false);
+    }, 1300);
+  }
+  return (
+    <button
+      type="button"
+      onClick={startListening}
+      aria-label="Record (simulated)"
+      title="Record instead of typing (simulated)"
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: "50%",
+        flexShrink: 0,
+        border: `1px solid ${active ? "var(--rose)" : "var(--hairline-strong)"}`,
+        background: active ? "var(--rose-soft)" : "transparent",
+        color: active ? "var(--rose)" : "var(--ink-faint)",
+        cursor: active ? "default" : "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 15,
+        fontFamily: "inherit",
+        transition: "all .2s ease",
+      }}
+    >
+      {active ? "●" : "🎙"}
+    </button>
+  );
+}
+
 function WorkspacePanel() {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
@@ -289,6 +328,7 @@ function WorkspacePanel() {
           ))}
         </div>
         <div className="chat-input-row">
+          <MicButton samples={chips} onResult={(t) => setInput(t)} />
           <input
             placeholder="Ask about Northwind's history…"
             value={input}
@@ -382,11 +422,22 @@ function TimelinePanel({
         </div>
         <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
         <input placeholder="One-line summary" value={summary} onChange={(e) => setSummary(e.target.value)} />
-        <textarea
-          placeholder="Full detail (optional) — why it happened, who was involved, the outcome"
-          value={detail}
-          onChange={(e) => setDetail(e.target.value)}
-        />
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <textarea
+            placeholder="Full detail (optional) — why it happened, who was involved, the outcome"
+            value={detail}
+            onChange={(e) => setDetail(e.target.value)}
+            style={{ flex: 1 }}
+          />
+          <MicButton
+            samples={[
+              "We chose the phased rollout after the client pushed back on price, and it's closed 68% more often since.",
+              "The onboarding delay came from underestimating the legacy data cleanup — we now budget 30% extra time for that.",
+              "We lost this account after a support ticket sat unassigned for 11 hours. Led to the new on-call rotation.",
+            ]}
+            onResult={(t) => setDetail(t)}
+          />
+        </div>
         <button className="btn-primary" onClick={submit} disabled={submitting}>
           {submitting ? "Adding…" : "Add to memory"}
         </button>
@@ -520,6 +571,7 @@ function AdvisorPanel() {
         ))}
       </div>
       <div className="advisor-input-row">
+        <MicButton samples={scenarios} onResult={(t) => setSituation(t)} />
         <input
           placeholder="Describe a live situation…"
           value={situation}
@@ -1200,14 +1252,24 @@ function DataCapturePanel({ showToast }: { showToast: (t: string) => void }) {
           disabled={noteStage === "understanding"}
           style={{ background: "var(--bg-elev-2)", border: "1px solid var(--hairline)", borderRadius: 10, padding: "10px 14px", color: "var(--ink)", fontSize: 13.5, fontFamily: "inherit", width: "100%", marginBottom: 10, boxSizing: "border-box" }}
         />
-        <textarea
-          placeholder="Type your note here…"
-          value={noteText}
-          onChange={(e) => setNoteText(e.target.value)}
-          disabled={noteStage === "understanding"}
-          rows={3}
-          style={{ background: "var(--bg-elev-2)", border: "1px solid var(--hairline)", borderRadius: 10, padding: "10px 14px", color: "var(--ink)", fontSize: 13.5, fontFamily: "inherit", width: "100%", marginBottom: 12, boxSizing: "border-box", resize: "vertical" }}
-        />
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 12 }}>
+          <textarea
+            placeholder="Type your note here…"
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            disabled={noteStage === "understanding"}
+            rows={3}
+            style={{ background: "var(--bg-elev-2)", border: "1px solid var(--hairline)", borderRadius: 10, padding: "10px 14px", color: "var(--ink)", fontSize: 13.5, fontFamily: "inherit", flex: 1, boxSizing: "border-box", resize: "vertical" }}
+          />
+          <MicButton
+            samples={[
+              "Client mentioned they're evaluating two other vendors, decision expected by end of month.",
+              "Quick sync with the onboarding team — everything on track for the Friday go-live.",
+              "Heads up: the finance contact changed, need to loop in the new person before the renewal call.",
+            ]}
+            onResult={(t) => setNoteText(t)}
+          />
+        </div>
         <button className="btn-primary" onClick={saveNote} disabled={noteStage === "understanding"}>
           {noteStage === "understanding" ? "Understanding…" : "Save Note"}
         </button>
@@ -1508,6 +1570,7 @@ function InsightsChat({ insightsContext }: { insightsContext: string }) {
       </div>
 
       <div style={{ display: "flex", gap: 10 }}>
+        <MicButton samples={chips} onResult={(t) => setInput(t)} />
         <input
           type="text"
           value={input}

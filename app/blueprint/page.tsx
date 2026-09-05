@@ -141,6 +141,7 @@ export default function Blueprint() {
         </div>
       </section>
 
+      <ArchitectureDiagramSection />
       <LeadPipelineSection />
       <MultiTenantSection />
       <RolesSection />
@@ -156,6 +157,99 @@ export default function Blueprint() {
         My Campus Buddy — a concept prototype. This page is a build blueprint, not a live system.
       </footer>
     </>
+  );
+}
+
+function ArchitectureDiagramSection() {
+  return (
+    <section className="section section-alt">
+      <div className="wrap">
+        <SectionHeader
+          eyebrow="The Big Picture"
+          title="How data moves through the system, end to end."
+          sub="Every box below is explained in its own section on this page. This is just the map — read it top to bottom, the same direction data actually flows."
+        />
+        <div style={{ overflowX: "auto" }}>
+          <svg viewBox="0 0 1000 660" style={{ width: "100%", minWidth: 720, height: "auto" }} xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-faint)" />
+              </marker>
+            </defs>
+
+            <text x="20" y="30" fontSize="12" fontFamily="var(--mono)" fill="var(--ink-faint)" style={{ textTransform: "uppercase", letterSpacing: "0.05em" }}>Frontend — what a person touches</text>
+            <g fontFamily="inherit">
+              <rect x="20" y="40" width="150" height="55" rx="10" fill="var(--gold-soft)" stroke="var(--gold)" />
+              <text x="95" y="63" textAnchor="middle" fontSize="12" fill="var(--ink)">In-App Calling</text>
+              <text x="95" y="79" textAnchor="middle" fontSize="10" fill="var(--ink-faint)">(licensed partner)</text>
+
+              <rect x="195" y="40" width="150" height="55" rx="10" fill="var(--gold-soft)" stroke="var(--gold)" />
+              <text x="270" y="63" textAnchor="middle" fontSize="12" fill="var(--ink)">Meeting Mode</text>
+              <text x="270" y="79" textAnchor="middle" fontSize="10" fill="var(--ink-faint)">(mic, in-person)</text>
+
+              <rect x="370" y="40" width="150" height="55" rx="10" fill="var(--gold-soft)" stroke="var(--gold)" />
+              <text x="445" y="63" textAnchor="middle" fontSize="12" fill="var(--ink)">Speak or Type</text>
+              <text x="445" y="79" textAnchor="middle" fontSize="10" fill="var(--ink-faint)">a quick note</text>
+
+              <rect x="545" y="40" width="210" height="55" rx="10" fill="var(--gold-soft)" stroke="var(--gold)" />
+              <text x="650" y="63" textAnchor="middle" fontSize="12" fill="var(--ink)">Connected Tools</text>
+              <text x="650" y="79" textAnchor="middle" fontSize="10" fill="var(--ink-faint)">Email · Slack · Teams · HR · CRM</text>
+
+              <rect x="780" y="40" width="200" height="55" rx="10" fill="var(--gold-soft)" stroke="var(--gold)" />
+              <text x="880" y="63" textAnchor="middle" fontSize="12" fill="var(--ink)">AI Assistant Chat</text>
+              <text x="880" y="79" textAnchor="middle" fontSize="10" fill="var(--ink-faint)">questions, in / out</text>
+            </g>
+
+            <line x1="95" y1="95" x2="95" y2="135" stroke="var(--ink-faint)" strokeWidth="1.5" markerEnd="url(#arrow)" />
+            <line x1="270" y1="95" x2="270" y2="135" stroke="var(--ink-faint)" strokeWidth="1.5" markerEnd="url(#arrow)" />
+            <line x1="445" y1="95" x2="445" y2="135" stroke="var(--ink-faint)" strokeWidth="1.5" markerEnd="url(#arrow)" />
+            <line x1="650" y1="95" x2="650" y2="135" stroke="var(--ink-faint)" strokeWidth="1.5" markerEnd="url(#arrow)" />
+
+            <text x="20" y="128" fontSize="12" fontFamily="var(--mono)" fill="var(--ink-faint)" style={{ textTransform: "uppercase", letterSpacing: "0.05em" }}>Backend — capture &amp; understand</text>
+            <rect x="20" y="138" width="740" height="55" rx="10" fill="var(--bg-elev-2)" stroke="var(--hairline-strong)" />
+            <text x="390" y="161" textAnchor="middle" fontSize="12" fill="var(--ink)">Recording / text saved → Speech-to-text (if audio) → AI reads it and understands it</text>
+            <text x="390" y="179" textAnchor="middle" fontSize="10" fill="var(--ink-faint)">One call, meeting, or note at a time — the "first AI pass"</text>
+
+            <line x1="390" y1="193" x2="390" y2="233" stroke="var(--ink-faint)" strokeWidth="1.5" markerEnd="url(#arrow)" />
+
+            <rect x="20" y="238" width="740" height="55" rx="10" fill="var(--bg-elev-2)" stroke="var(--hairline-strong)" />
+            <text x="390" y="261" textAnchor="middle" fontSize="12" fill="var(--ink)">Saved as a Structured Record</text>
+            <text x="390" y="279" textAnchor="middle" fontSize="10" fill="var(--ink-faint)">Tagged with Company ID (invisible) + Department (Sales / HR / Tech / Operations)</text>
+
+            <line x1="390" y1="293" x2="390" y2="333" stroke="var(--ink-faint)" strokeWidth="1.5" markerEnd="url(#arrow)" />
+
+            <rect x="20" y="338" width="740" height="68" rx="10" fill="var(--bg-elev-solid)" stroke="var(--gold)" strokeWidth="2" />
+            <text x="390" y="364" textAnchor="middle" fontSize="13" fontWeight="700" fill="var(--gold)">THE DATABASE</text>
+            <text x="390" y="384" textAnchor="middle" fontSize="10" fill="var(--ink-faint)">Encrypted · Company-isolated (Row Level Security) · Continuously copied across multiple servers</text>
+            <text x="390" y="399" textAnchor="middle" fontSize="10" fill="var(--ink-faint)">so one server failing never means data is lost</text>
+
+            <line x1="390" y1="406" x2="390" y2="446" stroke="var(--ink-faint)" strokeWidth="1.5" markerEnd="url(#arrow)" />
+
+            <rect x="20" y="451" width="740" height="55" rx="10" fill="var(--bg-elev-2)" stroke="var(--hairline-strong)" />
+            <text x="390" y="474" textAnchor="middle" fontSize="12" fill="var(--ink)">Second AI Pass — Pattern-Finding (runs on a schedule, not per-call)</text>
+            <text x="390" y="492" textAnchor="middle" fontSize="10" fill="var(--ink-faint)">Looks across hundreds of records at once to find what one record alone can't show</text>
+
+            <line x1="390" y1="506" x2="390" y2="546" stroke="var(--ink-faint)" strokeWidth="1.5" markerEnd="url(#arrow)" />
+
+            <text x="20" y="538" fontSize="12" fontFamily="var(--mono)" fill="var(--ink-faint)" style={{ textTransform: "uppercase", letterSpacing: "0.05em" }}>Back to the frontend — what a person sees</text>
+            <rect x="20" y="548" width="230" height="55" rx="10" fill="var(--gold-soft)" stroke="var(--gold)" />
+            <text x="135" y="571" textAnchor="middle" fontSize="12" fill="var(--ink)">Ask a Plain Question,</text>
+            <text x="135" y="587" textAnchor="middle" fontSize="12" fill="var(--ink)">Get a Real Answer</text>
+
+            <rect x="270" y="548" width="230" height="55" rx="10" fill="var(--gold-soft)" stroke="var(--gold)" />
+            <text x="385" y="571" textAnchor="middle" fontSize="12" fill="var(--ink)">Top Insights</text>
+            <text x="385" y="587" textAnchor="middle" fontSize="12" fill="var(--ink)">Every Week &amp; Month</text>
+
+            <rect x="520" y="548" width="240" height="55" rx="10" fill="var(--gold-soft)" stroke="var(--gold)" />
+            <text x="640" y="571" textAnchor="middle" fontSize="12" fill="var(--ink)">Six-Month Contribution</text>
+            <text x="640" y="587" textAnchor="middle" fontSize="12" fill="var(--ink)">Report to the CEO</text>
+
+            <path d="M880,95 C 880,260 770,260 770,365" fill="none" stroke="var(--ink-faint)" strokeWidth="1.5" strokeDasharray="4,3" markerEnd="url(#arrow)" />
+            <text x="800" y="230" fontSize="9" fill="var(--ink-faint)" textAnchor="middle" transform="rotate(90 800,230)">reads from the database directly</text>
+          </svg>
+        </div>
+      </div>
+    </section>
   );
 }
 
